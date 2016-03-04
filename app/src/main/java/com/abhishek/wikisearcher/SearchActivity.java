@@ -2,12 +2,8 @@ package com.abhishek.wikisearcher;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityOptionsCompat;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
@@ -42,16 +38,7 @@ public class SearchActivity extends AppCompatActivity {
 
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-
-
-        mRecyclerView = (RecyclerView) findViewById(R.id.listview);
+        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
         StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL);
         mRecyclerView.setLayoutManager(staggeredGridLayoutManager);
@@ -74,15 +61,6 @@ public class SearchActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -91,18 +69,14 @@ public class SearchActivity extends AppCompatActivity {
     }
 
     protected void handleMenuSearch() {
-        ActionBar action = getSupportActionBar(); //get the actionbar
 
-
-        action.setDisplayShowCustomEnabled(true); //enable it to display a
-        // custom view in the action bar.
+        ActionBar action = getSupportActionBar();
+        action.setDisplayShowCustomEnabled(true);
         action.setCustomView(R.layout.view_action_bar_search);
         ActionBar.LayoutParams layoutParams = new ActionBar.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        action.setCustomView(action.getCustomView(), layoutParams);//add the custom view
-        action.setDisplayShowTitleEnabled(false); //hide the title
-
-        mEditTextSearch = (EditText) action.getCustomView().findViewById(R.id.edtSearch); //the text editor
-
+        action.setCustomView(action.getCustomView(), layoutParams);
+        action.setDisplayShowTitleEnabled(false);
+        mEditTextSearch = (EditText) action.getCustomView().findViewById(R.id.edtSearch);
         mEditTextSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
