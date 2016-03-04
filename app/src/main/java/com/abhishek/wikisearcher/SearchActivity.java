@@ -1,36 +1,36 @@
 package com.abhishek.wikisearcher;
 
-import android.content.Context;
-import android.media.Image;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.KeyEvent;
 import android.view.Menu;
-import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.ListView;
-import android.widget.TextView;
+
+import com.abhishek.wikisearcher.models.Image;
 
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
-public class SearchActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+public class SearchActivity extends AppCompatActivity {
+
 
     private EditText mEditTextSearch;
-    private ListView mListView;
-    private ArrayList<String> mStrings;
-    private ImageAdapter mAdapter;
+    private RecyclerView mRecyclerView;
+    private ImageResultAdapter mAdapter;
 
 
     @Override
@@ -49,18 +49,29 @@ public class SearchActivity extends AppCompatActivity
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
 
 
-        mListView = (ListView) findViewById(R.id.listview);
-        mStrings = new ArrayList<>();
-        mStrings.add("Hello World");
-        mStrings.add("Abhishek Batra");
-        mStrings.add("Moto 360");
-        mStrings.add("Nokia E5");
+        mRecyclerView = (RecyclerView) findViewById(R.id.listview);
 
-        mAdapter = new ImageAdapter(mStrings, this);
-        mListView.setAdapter(mAdapter);
+        StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL);
+        mRecyclerView.setLayoutManager(staggeredGridLayoutManager);
+        mAdapter = new ImageResultAdapter(this, new ArrayList<Image>());
+        mRecyclerView.setAdapter(mAdapter);
+        ItemClickSupport.addTo(mRecyclerView).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
+            @Override
+            public void onItemClicked(RecyclerView recyclerView, int position, View v) {
+                Image image = mAdapter.getImages().get(position);
+
+                Intent intent = new Intent(SearchActivity.this, DetailActivity.class);
+
+                intent.putExtra(Image.TAG, image);
+
+                ActivityOptionsCompat options = ActivityOptionsCompat.
+                        makeSceneTransitionAnimation(SearchActivity.this, v, "title");
+
+                startActivity(intent, options.toBundle());
+            }
+        });
     }
 
     @Override
@@ -76,16 +87,6 @@ public class SearchActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         handleMenuSearch();
-        return true;
-    }
-
-
-    @SuppressWarnings("StatementWithEmptyBody")
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
@@ -109,22 +110,30 @@ public class SearchActivity extends AppCompatActivity
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                SearchActivity.this.mAdapter.getFilter().filter(charSequence);
             }
+
+            private Timer timer = new Timer();
+            private final long DELAY = 500; // milliseconds
 
             @Override
-            public void afterTextChanged(Editable editable) {
+            public void afterTextChanged(final Editable editable) {
 
+                timer.cancel();
+                timer = new Timer();
+                timer.schedule(
+                        new TimerTask() {
+
+                            @Override
+                            public void run() {
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        SearchActivity.this.mAdapter.getFilter().filter(editable.toString());
+                                    }
+                                });
+                            }
+                        }, DELAY);
             }
         });
-
-
-        mEditTextSearch.requestFocus();
-
-        //open the keyboard focused in the edtSearch
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.showSoftInput(mEditTextSearch, InputMethodManager.SHOW_IMPLICIT);
-
-
     }
 }

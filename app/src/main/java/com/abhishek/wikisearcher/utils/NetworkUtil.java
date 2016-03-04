@@ -79,4 +79,23 @@ public class NetworkUtil {
 
         return jsonArray;
     }
+
+    public static String getUrlFromPageId(int pageid) {
+
+        JSONObject object;
+        Request request = new Request.Builder()
+                .url(Constants.HTML_URL + pageid)
+                .build();
+        try {
+            Response response = client.newCall(request).execute();
+            object = new JSONObject(response.body().string());
+
+            object = object.getJSONObject("query").getJSONObject("pages").getJSONObject(String.valueOf(pageid));
+            return object.getString("fullurl");
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 }
